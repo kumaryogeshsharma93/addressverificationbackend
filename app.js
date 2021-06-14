@@ -40,7 +40,7 @@ const oAuth2Client = new google.auth.OAuth2(
 );
 
 oAuth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
-async function sendMail() {
+async function sendMail(user) {
   try {
     const accessToken = await oAuth2Client.getAccessToken();
     const transport = nodemailer.createTransport({
@@ -57,9 +57,9 @@ async function sendMail() {
     const mailOptions = {
       from: 'IISERVZ <iiservzncr@gmail.com>',
       to: 'yogesh121210@gmail.com',
-      subject: 'Hello from gmail using API',
-      text: 'Hello from gmail email using API',
-      html: '<h1>Hello from gmail email using API</h1>',
+      subject: 'Verification Details submitted for '+ user.username + ' Client ' + user.clientname +' Ref Id '+ user.refId,
+      text: 'Address Verification Details submitted for '+ user.username + ' for client ' + user.clientname +' and RefId '+ user.refId,
+      html: '<h1>Hello ! '+ user.username +' has submit verfication details with Ref Id '+user.refId + ' for client '+user.clientname+'</h1>',
     };
     const result = await transport.sendMail(mailOptions);
     return result;
@@ -68,6 +68,51 @@ async function sendMail() {
     return error;
   }
 }
+
+// we can send blob from pdf file from angular application and
+// save that file in node js server
+app.post('/api/sendmail_fileupload', upload.any(), (req, res) => {
+  // console.log('Files: ', req.files);
+  var obj = {};
+  var username =  req.body.username;
+  var clientname = req.body.clientname;
+  var refId = req.body.refId;
+  obj.username = username;
+  obj.clientname = clientname;
+  obj.refId = refId;
+  console.log(obj);
+
+  sendMail(obj)
+  .then((result) => {
+    console.log('Email sent...', result)
+    res.send(result);
+  }
+ )
+.catch((error) => console.log('error '+error.message));
+
+/*
+  var fileWithPath = dir+req.files[0].originalname + '.pdf';
+  fs.writeFile( fileWithPath , req.files[0].buffer, (err) => {
+    if (err) {
+        console.log('Error: ', err);
+        res.status(500).send('An error occurred: ' + err.message);
+    } else {
+      console.log('File created !');
+        fs.unlink(fileWithPath, (err) => {
+          if (err) {
+              console.log("failed to delete local image:"+err);
+          } else {
+              console.log('successfully deleted local image');                                
+          }
+        });
+        res.status(200).send('ok');
+    }
+});
+
+*/
+
+});
+
 // mail sending code ends here
 
 app.post("/sendUserEmail" , (req,res) => {
@@ -116,7 +161,6 @@ async function sendMailDirect(user, callback) {
   let info = await transporter.sendMail(mailOptions);
   callback(info);
 }
-
 
 const memory_storage = multer.memoryStorage();
 const multerImg = multer({ storage: memory_storage });
@@ -208,41 +252,7 @@ app.post('/api/file-image-upload', multerImg.single('userpdf'), (req, res) => {
 });
 });
 
-// we can send blob from pdf file from angular application and
-// save that file in node js server
-app.post('/api/file-upload', upload.any(), (req, res) => {
-  console.log('Files: ', req.files);
-  var fileWithPath = dir+req.files[0].originalname + '.pdf';
-  console.log(fileWithPath);
-  var fileWithPath2 = dir+"upload"+req.files[0].originalname + '.pdf';
-  fs.writeFile( fileWithPath2 , req.files[0].buffer, (err) => {
-    if (err) {
-        console.log('Error: ', err);
-        res.status(500).send('An error occurred: ' + err.message);
-    } else {
-        console.log('File created !');
-        res.status(200).send('ok');
-        //
-        /*
-        fs.unlink(fileWithPath2 , (err) => {
-          if (err) {
-              console.log("failed to delete local image:"+err);
-          } else {
-              console.log('successfully deleted local image');                                
-          }
-            });
-        */
-        //
-        fs.unlink(dir , (err) => {
-          if (err) {
-              console.log("failed to delete local image:"+err);
-          } else {
-              console.log('successfully deleted local image');                                
-          }
-            });
-    }
-});
-});
+
 
 function decodeBase64Image(dataString) {
   var matches = dataString.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/),
