@@ -1,0 +1,29 @@
+//--Generating PPK File
+Step-1:  Login to your cPanel
+Step-2:  Click "SSH Access" on Security area.
+Step-3:  Click "Manage SSK Keys" Button
+Step-4:  Click on "Generate a New Key" Button
+Step-5:  Put "Key Name" & "keypass" as Password
+Step-6:  Click "Generate Key" Button [New key generated but not authorized yet]
+Step-7:  Click "Manage" Link to authorize it & then go back
+Step-8:  Click "View/Download" Link under "Private Keys" to download PPK file
+Step-9:  Put your key keypass to convert key to PPK
+Step-10: Click "Download" Button, PPK file will downloaded.
+
+Please Save your PPK file to a safe place & never share with other
+
+//--Use PPK File to access your SSH via PuTTY
+Step-1: Open your PuTTY software.
+Step-2: Write your IP/Domain on hostname in input box 
+Step-3: Select "Connection / SSH / auth"
+Step-4: Browse your PPK File & click "Open" Button
+Step-5: It open a black screen & a security alert (1st time only) Click yes on security alert.
+Step-6: Put your server username & press "Enter" on black screen.
+Step-7: A message appear to put your keypass, put your keypass and press "Enter"
+
+You are now connected.
+
+Our next video show you how to check RAM, Processor, Hard disk etc. with SSH connection of your shared hosting
+
+
+https://www.youtube.com/watch?v=9Yx1gZKgb5Y

@@ -1,0 +1,14 @@
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
+PassengerAppRoot "/home/nvrfwyiy4wdg/nodejs"
+PassengerBaseURI "/app"
+PassengerNodejs "/home/nvrfwyiy4wdg/nodevenv/nodejs/10/bin/node"
+PassengerAppType node
+PassengerStartupFile app.js
+PassengerAppLogFile "/home/nvrfwyiy4wdg/apilog"
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
+#RewriteEngine on
+#RewriteRule  (.*)  https://localhost:8443/$1 [P,L]
+#RewriteRule  (.*)  https://backend.iiservzdigitalverification.com:8443/$1 [P,L]
+RewriteEngine On
+RewriteCond %{HTTPS} !on
+RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI}

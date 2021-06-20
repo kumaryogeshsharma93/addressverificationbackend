@@ -1,0 +1,10 @@
+APP_PORT=4000
+DB_PORT=3306
+DB_HOST=localhost
+DB_USER=dgveruser
+DB_PASS=Satpan#140140
+DB_NAME=digitalverificationdb
+CLIENT_ID=131415255513-8hhp625d747ng0pl6a31sseqtlt9r5is.apps.googleusercontent.com
+CLEINT_SECRET=t1eMqZHT6eB9petrYutzu2D1
+REDIRECT_URI=https://developers.google.com/oauthplayground
+REFRESH_TOKEN=1//04mbId7jYcFu4CgYIARAAGAQSNwF-L9IrHzW_lGGEcKvaTMyUeFH6-pWSGfVun21CWdFiDYHGYRDpluASiHOaNu9HJhbDR3OmW_s

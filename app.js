@@ -13,8 +13,22 @@ const {google} = require('googleapis');
 const userRouter = require('./api/users/user.router');
 const { getMaxListeners } = require("process");
 const app = express();
+//var http = require('http');
+//var server = http.createServer(app);
+var https = require('https');
+var key = fs.readFileSync('./config/server.key');
+var cert = fs.readFileSync('./config/server.crt');
+var ca = fs.readFileSync('./config/ca.crt');
+var options = {
+  key: key.toString(),
+  cert: cert.toString(),
+  ca:ca.toString()
+}
+
 app.use(express.json());
 app.use(cors({origin:"*"}))
+// API calls start here..
+app.use("/api/users",userRouter);
 var dir = '/tmp/';
 var upload =  multer();
 fs.mkdir(dir, function(err) {
@@ -28,10 +42,10 @@ fs.mkdir(dir, function(err) {
 // mail sending code
 
 // These id's and secrets should come from .env file.
-const CLIENT_ID = '131415255513-8hhp625d747ng0pl6a31sseqtlt9r5is.apps.googleusercontent.com';
-const CLEINT_SECRET = 't1eMqZHT6eB9petrYutzu2D1';
-const REDIRECT_URI = 'https://developers.google.com/oauthplayground';
-const REFRESH_TOKEN = '1//04mbId7jYcFu4CgYIARAAGAQSNwF-L9IrHzW_lGGEcKvaTMyUeFH6-pWSGfVun21CWdFiDYHGYRDpluASiHOaNu9HJhbDR3OmW_s';
+const CLIENT_ID = process.env.CLIENT_ID;
+const CLEINT_SECRET = process.env.CLEINT_SECRET;
+const REDIRECT_URI = process.env.REDIRECT_URI;
+const REFRESH_TOKEN = process.env.REFRESH_TOKEN;
 
 const oAuth2Client = new google.auth.OAuth2(
   CLIENT_ID,
@@ -72,7 +86,6 @@ async function sendMail(user) {
 // we can send blob from pdf file from angular application and
 // save that file in node js server
 app.post('/api/sendmail_fileupload', upload.any(), (req, res) => {
-  // console.log('Files: ', req.files);
   var obj = {};
   var username =  req.body.username;
   var clientname = req.body.clientname;
@@ -90,97 +103,19 @@ app.post('/api/sendmail_fileupload', upload.any(), (req, res) => {
  )
 .catch((error) => console.log('error '+error.message));
 
-/*
-  var fileWithPath = dir+req.files[0].originalname + '.pdf';
-  fs.writeFile( fileWithPath , req.files[0].buffer, (err) => {
-    if (err) {
-        console.log('Error: ', err);
-        res.status(500).send('An error occurred: ' + err.message);
-    } else {
-      console.log('File created !');
-        fs.unlink(fileWithPath, (err) => {
-          if (err) {
-              console.log("failed to delete local image:"+err);
-          } else {
-              console.log('successfully deleted local image');                                
-          }
-        });
-        res.status(200).send('ok');
-    }
-});
-
-*/
 
 });
-
-// mail sending code ends here
-
-app.post("/sendUserEmail" , (req,res) => {
-  let user = req.body;
-  console.log(user);
-  sendMail()
-  .then((result) => {
-    console.log('Email sent...', result)
-    res.send(result);
-  }
-    )
-  .catch((error) => console.log('error '+error.message));
-});
-
-
-
-app.post("/sendEmail" , (req,res) => {
-  let user = req.body;
-  console.log(user);
-  sendMailDirect(user, info => {
-    console.log(`The mail has beed send 😃 and the id is ${info.messageId}`);
-    res.send(info);
-  });
-});
-
-async function sendMailDirect(user, callback) {
-  // create reusable transporter object using the default SMTP transport
-  let transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,
-    secure: false, // true for 465, false for other ports
-    auth: {
-      user: 'GMAIL_USER',
-      pass: 'GMAIL_PWD'
-    }
-  });
-
-  let mailOptions = {
-    from: '"Email Send from Node Js APP !', // sender address
-    to: 'yogesh121210@gmail.com', // list of receivers
-    subject: "Wellcome to IISERVZ 👻", // Subject line
-    html: `<h1>Hi Yogesh </h1><br>
-    <h4>Thanks for joining us</h4>`
-  };
-  // send mail with defined transport object
-  let info = await transporter.sendMail(mailOptions);
-  callback(info);
-}
 
 const memory_storage = multer.memoryStorage();
 const multerImg = multer({ storage: memory_storage });
-// const storage = multer.memoryStorage({
-//     destination: function(req, file, callback) {
-//         callback(null, '')
-//     }
-// });
 const multerConfig = {
-  //specify diskStorage (another option is memory)
-  storage: multer.diskStorage({
-    //specify destination
-    destination: function(req, file, next){
-      next(null, '/tmp/upload');
+   storage: multer.diskStorage({
+     destination: function(req, file, next){
+      next(null, '/tmp/');
     },
-    //specify the filename to be unique
-    filename: function(req, file, next){
+     filename: function(req, file, next){
       console.log(file);
       const ext = file.mimetype.split('/')[1];
-      //set the file fieldname to a unique name containing the original name, current datetime and the extension.
       next(null, file.fieldname + '-' + Date.now() + '.'+ext);
     }
   }),
@@ -191,24 +126,10 @@ const multerConfig = {
          // next();
         }
         next(null, true);
-      
-      /*
-     // only permit zip mimetypes , 
-     // we can restrict to any file type
-      const zip = file.mimetype.startsWith('application');
-      if(zip){
-        console.log('zip uploaded');
-        next(null, true);
-      }else{
-        console.log("file not supported")
-        errorReq = true;
-        return next();
-      }
-      */
-  }
+    }
 };
-// API calls start here..
-app.use("/api/users",userRouter);
+
+
 app.get("/api", (req, res) => {
     res.json({
         success : 1,
@@ -216,55 +137,24 @@ app.get("/api", (req, res) => {
     });
 });
 
-// upload single file and any file type in node application
- app.post('/api/any-file-upload', multer(multerConfig).single('file'), (req, res) => {
-    console.log('File created !');
-    res.status(200).send('ok');
- });
-
-app.post('/api/file-upload2', upload.any(), (req, res) => {
-  console.log('Files: ', req.files);
-  fs.writeFile(req.files[0].originalname, req.files[0].buffer, (err) => {
-    if (err) {
-        console.log('Error: ', err);
-        res.status(500).send('An error occurred: ' + err.message);
-    } else {
-        console.log('File created !');
-        res.status(200).send('ok');
-    }
-});
+app.get("/", (req, res) => {
+    res.json({
+        success : 1,
+        message : "This is first node API."
+    });
 });
 
+// we can un-comment below code if wants to run APIs of http
 
-// we can send image dataurl from angular application and
-// save that file in node js server
-app.post('/api/file-image-upload', multerImg.single('userpdf'), (req, res) => {
-  var imageBuffer = decodeBase64Image(req.body.userpdf);
-  console.log(imageBuffer);
-  fs.writeFile('sample.jpg', imageBuffer.data, (err) => {
-    if (err) {
-        console.log('Error: ', err);
-        res.status(500).send('An error occurred: ' + err.message);
-    } else {
-        console.log('File created !');
-        res.status(200).send('ok');
-    }
-});
-});
+var http = require('http');
+http.createServer(app,function (req, res) {
+    console.log('http req caled !')
+    res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
+    res.end();
+}).listen(8080);
 
+var httpsserver = https.createServer(options, app);
+httpsserver.listen(8443, function () {
+   console.log('Api server Started at port: '+8443);
+}).setTimeout(0);
 
-
-function decodeBase64Image(dataString) {
-  var matches = dataString.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/),
-    response = {};
-  if (matches.length !== 3) {
-    return new Error('Invalid input string');
-  }
-  response.type = matches[1];
-  response.data = new Buffer(matches[2], 'base64');
-  return response;
-}
-
-app.listen(process.env.APP_PORT, () => {
-    console.log('Server is running !');
-});
